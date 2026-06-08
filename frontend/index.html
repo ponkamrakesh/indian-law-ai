@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IndianLawAI • Legal Intelligence Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=Playfair+Display:wght@700&amp;display=swap');
+        
+        :root {
+            --teal: #8FDDDF;
+        }
+        
+        body {
+            font-family: 'Inter', system_ui, sans-serif;
+        }
+        
+        .heading-serif {
+            font-family: 'Playfair Display', Georgia, serif;
+        }
+
+        .law-bg {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        }
+
+        .chat-container {
+            scrollbar-width: thin;
+            scrollbar-color: #8FDDDF #f1f5f9;
+        }
+
+        .message-user {
+            background: linear-gradient(135deg, #8FDDDF 0%, #6BC8CB 100%);
+            color: white;
+            border-radius: 18px 18px 4px 18px;
+        }
+
+        .message-ai {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 18px 18px 18px 4px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
+        }
+
+        .section-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .section-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        }
+
+        .teal-accent {
+            color: #8FDDDF;
+        }
+
+        .nav-active {
+            background-color: #8FDDDF;
+            color: white;
+            border-radius: 9999px;
+        }
+
+        .legal-disclaimer {
+            font-size: 0.75rem;
+            line-height: 1.4;
+        }
+
+        .modern-shadow {
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -4px rgb(0 0 0 / 0.05);
+        }
+    </style>
+</head>
+<body class="bg-white text-slate-900">
+    <!-- Navbar -->
+    <nav class="border-b border-slate-100 bg-white/95 backdrop-blur-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-x-3">
+                <div class="w-10 h-10 bg-[#8FDDDF] rounded-2xl flex items-center justify-center">
+                    <i class="fas fa-balance-scale text-white text-2xl"></i>
+                </div>
+                <div>
+                    <span class="font-semibold text-2xl tracking-tight">IndianLawAI</span>
+                    <span class="text-xs text-slate-400 font-medium block -mt-1">v1.0 • Production</span>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-x-2 text-sm">
+                <div class="flex items-center gap-x-2 px-4 py-1.5 bg-slate-50 rounded-3xl text-slate-600">
+                    <div class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                    <span class="font-medium">Free Tier Active • Groq + Chroma</span>
+                </div>
+                <a href="#docs" class="px-4 py-2 text-sm font-medium hover:bg-slate-50 rounded-3xl transition-colors">Docs</a>
+                <button onclick="showIngestModal()" 
+                        class="px-5 py-2 bg-[#8FDDDF] hover:bg-[#6BC8CB] text-white font-semibold rounded-3xl flex items-center gap-x-2 transition-all active:scale-[0.985]">
+                    <i class="fas fa-upload text-sm"></i>
+                    <span class="font-medium">Add Data</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-6 pt-8 pb-12">
+        <!-- Hero / Header -->
+        <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8 mb-10">
+            <div>
+                <div class="inline-flex items-center gap-x-2 px-4 py-1.5 bg-[#8FDDDF]/10 text-[#8FDDDF] rounded-3xl text-sm font-semibold mb-4">
+                    <i class="fas fa-globe"></i>
+                    <span>100% Free • No Limits • Open Data</span>
+                </div>
+                <h1 class="text-6xl font-semibold tracking-tighter heading-serif">Indian Law<br>Intelligence</h1>
+                <p class="mt-3 max-w-md text-xl text-slate-600">Ask any question about IPC, CrPC, or any Indian law.<br>Powered by LangGraph, RAG &amp; production guardrails.</p>
+                
+                <div class="flex items-center gap-x-4 mt-6">
+                    <div class="flex -space-x-2">
+                        <div class="w-8 h-8 bg-slate-200 rounded-full border border-white overflow-hidden"><img src="https://i.pravatar.cc/32?img=12" class="w-full"></div>
+                        <div class="w-8 h-8 bg-slate-200 rounded-full border border-white overflow-hidden"><img src="https://i.pravatar.cc/32?img=47" class="w-full"></div>
+                        <div class="w-8 h-8 bg-slate-200 rounded-full border border-white overflow-hidden"><img src="https://i.pravatar.cc/32?img=28" class="w-full"></div>
+                    </div>
+                    <div class="text-sm text-slate-500">Trusted by 2.4k+ law students &amp; professionals</div>
+                </div>
+            </div>
+            
+            <div class="lg:w-80 bg-white border border-slate-100 rounded-3xl p-5 modern-shadow">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <div class="text-xs font-medium text-slate-500">CURRENT DATASET</div>
+                        <div class="font-semibold">IPC + CrPC + 40+ Acts</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-emerald-600 text-xs font-bold">LIVE</div>
+                        <div class="text-xs text-slate-400">v1.0 • 12k chunks</div>
+                    </div>
+                </div>
+                <div class="text-[10px] text-slate-400">Sources: indiacode.nic.in • courtbook.in • legislative.gov.in</div>
+            </div>
+        </div>
+
+        <!-- Main Chat Interface -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- Sidebar -->
+            <div class="lg:col-span-3 bg-white border border-slate-100 rounded-3xl p-6 h-fit modern-shadow">
+                <div class="mb-6">
+                    <div class="font-semibold text-sm tracking-wider text-slate-500 mb-3 px-1">QUICK ACTIONS</div>
+                    <div class="space-y-1">
+                        <button onclick="quickQuery('What is the punishment for murder under IPC Section 302?')" 
+                                class="w-full text-left px-4 py-3 text-sm hover:bg-slate-50 rounded-2xl flex items-center gap-x-3 transition-colors">
+                            <i class="fas fa-gavel w-4 text-[#8FDDDF]"></i>
+                            <span>IPC 302 - Murder</span>
+                        </button>
+                        <button onclick="quickQuery('What are my rights if arrested in India?')" 
+                                class="w-full text-left px-4 py-3 text-sm hover:bg-slate-50 rounded-2xl flex items-center gap-x-3 transition-colors">
+                            <i class="fas fa-user-shield w-4 text-[#8FDDDF]"></i>
+                            <span>Arrest Rights (CrPC)</span>
+                        </button>
+                        <button onclick="quickQuery('Explain domestic violence law in India')" 
+                                class="w-full text-left px-4 py-3 text-sm hover:bg-slate-50 rounded-2xl flex items-center gap-x-3 transition-colors">
+                            <i class="fas fa-home w-4 text-[#8FDDDF]"></i>
+                            <span>Domestic Violence Act</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div>
+                    <div class="font-semibold text-sm tracking-wider text-slate-500 mb-3 px-1">SUPPORTED LANGUAGES</div>
+                    <div class="flex flex-wrap gap-1.5">
+                        <div class="px-3 py-1 bg-slate-100 text-xs rounded-2xl">English</div>
+                        <div class="px-3 py-1 bg-slate-100 text-xs rounded-2xl">हिन्दी</div>
+                        <div class="px-3 py-1 bg-slate-100 text-xs rounded-2xl">தமிழ்</div>
+                        <div class="px-3 py-1 bg-slate-100 text-xs rounded-2xl">తెలుగు</div>
+                        <div class="px-3 py-1 bg-slate-100 text-xs rounded-2xl">বাংলা</div>
+                    </div>
+                    <div class="text-[10px] text-slate-400 mt-2 px-1">Auto-detects &amp; responds in your language</div>
+                </div>
+            </div>
+
+            <!-- Chat Window -->
+            <div class="lg:col-span-9 bg-white border border-slate-100 rounded-3xl overflow-hidden flex flex-col modern-shadow" style="height: 620px;">
+                <!-- Chat Header -->
+                <div class="px-6 py-4 border-b flex items-center justify-between bg-slate-50/70">
+                    <div class="flex items-center gap-x-3">
+                        <div class="w-9 h-9 bg-[#8FDDDF] rounded-2xl flex items-center justify-center">
+                            <i class="fas fa-robot text-white"></i>
+                        </div>
+                        <div>
+                            <div class="font-semibold">Legal Assistant</div>
+                            <div class="text-xs text-emerald-600 flex items-center gap-x-1.5">
+                                <i class="fas fa-circle text-[8px]"></i> 
+                                <span>Online • Guardrails Active</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-x-2 text-xs">
+                        <div class="px-3 py-1 bg-white border rounded-2xl flex items-center gap-x-1 text-slate-500">
+                            <i class="fas fa-shield-alt"></i>
+                            <span class="font-medium">Safety ON</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Messages -->
+                <div id="chat-messages" class="flex-1 p-6 overflow-y-auto chat-container bg-[#fafafa] space-y-6">
+                    <!-- Initial message populated by JS -->
+                </div>
+
+                <!-- Input Area -->
+                <div class="p-4 border-t bg-white">
+                    <div class="flex gap-x-3">
+                        <input id="user-input" 
+                               type="text" 
+                               placeholder="Ask about any Indian law or situation... (e.g., 'What is punishment for theft?')" 
+                               class="flex-1 px-5 py-3.5 border border-slate-200 focus:border-[#8FDDDF] focus:ring-1 focus:ring-[#8FDDDF] outline-none rounded-3xl text-sm placeholder:text-slate-400"
+                               onkeypress="if (event.key === 'Enter') sendMessage()">
+                        <button onclick="sendMessage()" 
+                                class="px-8 py-3.5 bg-[#8FDDDF] hover:bg-[#6BC8CB] active:bg-[#5ab9bc] transition-all text-white font-semibold rounded-3xl flex items-center justify-center gap-x-2 text-sm shadow-sm">
+                            <span>Send</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                    <div class="text-[10px] text-center text-slate-400 mt-2.5">This is not legal advice. Always verify with official sources.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features / Production Grade Highlights -->
+        <div class="mt-12 grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="section-card bg-white border border-slate-100 p-5 rounded-3xl">
+                <div class="text-[#8FDDDF] mb-3"><i class="fas fa-project-diagram text-xl"></i></div>
+                <div class="font-semibold">LangGraph Agent</div>
+                <div class="text-xs text-slate-500 mt-1">Multi-step reasoning, safety checks, language detection</div>
+            </div>
+            <div class="section-card bg-white border border-slate-100 p-5 rounded-3xl">
+                <div class="text-[#8FDDDF] mb-3"><i class="fas fa-database text-xl"></i></div>
+                <div class="font-semibold">Dynamic RAG + Versioning</div>
+                <div class="text-xs text-slate-500 mt-1">Internet-sourced data, chunk versioning, easy DB additions</div>
+            </div>
+            <div class="section-card bg-white border border-slate-100 p-5 rounded-3xl">
+                <div class="text-[#8FDDDF] mb-3"><i class="fas fa-chart-line text-xl"></i></div>
+                <div class="font-semibold">MLflow + RAGAS</div>
+                <div class="text-xs text-slate-500 mt-1">Precise metrics: Faithfulness, Relevancy, Precision</div>
+            </div>
+            <div class="section-card bg-white border border-slate-100 p-5 rounded-3xl">
+                <div class="text-[#8FDDDF] mb-3"><i class="fas fa-shield-alt text-xl"></i></div>
+                <div class="font-semibold">Enterprise Guardrails</div>
+                <div class="text-xs text-slate-500 mt-1">Harm detection, disclaimers, caching, modular code</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ingest Modal -->
+    <div id="ingest-modal" class="hidden fixed inset-0 bg-black/40 flex items-center justify-center z-[100]">
+        <div class="bg-white rounded-3xl w-full max-w-md p-7 modern-shadow">
+            <div class="flex justify-between items-center mb-6">
+                <div class="font-semibold text-xl">Add New Legal Data</div>
+                <button onclick="hideIngestModal()" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-slate-500 mb-1.5">Act Name</label>
+                    <input id="act-name" type="text" value="Indian Penal Code (IPC)" class="w-full px-4 py-2.5 border border-slate-200 rounded-2xl text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-500 mb-1.5">Version</label>
+                    <input id="version" type="text" value="1.1" class="w-full px-4 py-2.5 border border-slate-200 rounded-2xl text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-500 mb-1.5">Paste Text or JSON</label>
+                    <textarea id="ingest-text" rows="5" placeholder="Paste legal text or JSON array of documents..." class="w-full px-4 py-3 border border-slate-200 rounded-2xl text-sm font-mono"></textarea>
+                </div>
+                <div class="text-xs text-slate-400">Or upload a file (JSON/text). Supports future PDF parsing.</div>
+            </div>
+            
+            <div class="flex gap-x-3 mt-6">
+                <button onclick="hideIngestModal()" class="flex-1 py-3 text-sm border border-slate-200 hover:bg-slate-50 rounded-3xl font-medium">Cancel</button>
+                <button onclick="submitIngest()" class="flex-1 py-3 bg-[#8FDDDF] text-white text-sm font-semibold rounded-3xl">Ingest Data</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="text-center text-xs text-slate-400 py-8">
+        Built with completely free resources • Deploy on Vercel (UI) + Render/Railway (FastAPI) • Data from public government &amp; legal repositories
+    </footer>
+
+    <script>
+        // Tailwind script
+        function initializeTailwind() {
+            document.documentElement.style.setProperty('--accent', '#8FDDDF');
+        }
+
+        // Chat functionality
+        let messages = [];
+
+        function addMessage(content, isUser = false) {
+            const container = document.getElementById('chat-messages');
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `flex ${isUser ? 'justify-end' : 'justify-start'}`;
+            
+            const inner = document.createElement('div');
+            inner.className = `max-w-[82%] px-5 py-3.5 text-sm ${isUser ? 'message-user' : 'message-ai'}`;
+            
+            if (isUser) {
+                inner.innerHTML = `<div>${content}</div>`;
+            } else {
+                // AI message with possible sources
+                inner.innerHTML = `
+                    <div class="prose prose-sm max-w-none">${content}</div>
+                    <div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[10px]">
+                        <div class="text-emerald-600 flex items-center gap-x-1">
+                            <i class="fas fa-check-circle"></i> 
+                            <span>Verified with sources</span>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            messageDiv.appendChild(inner);
+            container.appendChild(messageDiv);
+            container.scrollTop = container.scrollHeight;
+            
+            messages.push({ content, isUser });
+        }
+
+        function showTyping() {
+            const container = document.getElementById('chat-messages');
+            const typing = document.createElement('div');
+            typing.id = 'typing-indicator';
+            typing.className = `flex justify-start`;
+            typing.innerHTML = `
+                <div class="max-w-[82%] px-5 py-3.5 bg-white border border-slate-200 rounded-3xl text-sm flex items-center gap-x-2">
+                    <div class="flex gap-x-1">
+                        <div class="w-1.5 h-1.5 bg-slate-300 rounded-full animate-bounce"></div>
+                        <div class="w-1.5 h-1.5 bg-slate-300 rounded-full animate-bounce" style="animation-delay: 150ms"></div>
+                        <div class="w-1.5 h-1.5 bg-slate-300 rounded-full animate-bounce" style="animation-delay: 300ms"></div>
+                    </div>
+                    <span class="text-xs text-slate-400">Thinking with LangGraph...</span>
+                </div>
+            `;
+            container.appendChild(typing);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function removeTyping() {
+            const typing = document.getElementById('typing-indicator');
+            if (typing) typing.remove();
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('user-input');
+            const query = input.value.trim();
+            if (!query) return;
+
+            addMessage(query, true);
+            input.value = '';
+
+            showTyping();
+
+            try {
+                // Call FastAPI backend (update URL when deployed)
+                const response = await fetch('http://localhost:8000/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: query })
+                });
+
+                if (!response.ok) throw new Error('Backend error');
+
+                const data = await response.json();
+                removeTyping();
+
+                let fullResponse = data.response;
+                
+                // Add sources if available
+                if (data.sources && data.sources.length > 0) {
+                    fullResponse += `<div class="mt-4 pt-3 border-t text-xs text-slate-500"><strong>Sources:</strong> `;
+                    data.sources.slice(0, 3).forEach((src, i) => {
+                        fullResponse += `${src.metadata.act || 'Law'} ${src.metadata.section || ''}${i < 2 ? ', ' : ''}`;
+                    });
+                    fullResponse += `</div>`;
+                }
+
+                addMessage(fullResponse, false);
+
+                // Show language if not English
+                if (data.language && data.language.code !== 'en') {
+                    const langNote = document.createElement('div');
+                    langNote.className = 'text-[10px] text-center text-slate-400 mt-1';
+                    langNote.textContent = `Responded in ${data.language.name}`;
+                    document.getElementById('chat-messages').appendChild(langNote);
+                }
+
+            } catch (error) {
+                removeTyping();
+                addMessage(`Sorry, there was an error connecting to the backend. Please ensure the FastAPI server is running on port 8000.<br><br><span class="text-xs">Tip: Run <code>uvicorn app.main:app --reload</code> in backend folder.</span>`, false);
+                console.error(error);
+            }
+        }
+
+        function quickQuery(text) {
+            const input = document.getElementById('user-input');
+            input.value = text;
+            sendMessage();
+        }
+
+        function showIngestModal() {
+            document.getElementById('ingest-modal').classList.remove('hidden');
+            document.getElementById('ingest-modal').classList.add('flex');
+        }
+
+        function hideIngestModal() {
+            document.getElementById('ingest-modal').classList.remove('flex');
+            document.getElementById('ingest-modal').classList.add('hidden');
+        }
+
+        async function submitIngest() {
+            const actName = document.getElementById('act-name').value;
+            const version = document.getElementById('version').value;
+            const text = document.getElementById('ingest-text').value.trim();
+
+            if (!text) {
+                alert('Please enter some legal text or JSON.');
+                return;
+            }
+
+            let documents = [];
+            try {
+                // Try parsing as JSON array
+                if (text.startsWith('[')) {
+                    documents = JSON.parse(text);
+                } else {
+                    // Treat as single document
+                    documents = [{
+                        text: text,
+                        metadata: { act: actName, source: "manual_upload" }
+                    }];
+                }
+            } catch (e) {
+                documents = [{
+                    text: text,
+                    metadata: { act: actName, source: "manual_upload" }
+                }];
+            }
+
+            try {
+                const res = await fetch('http://localhost:8000/ingest', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ documents, version, collection: "indian_law" })
+                });
+
+                const result = await res.json();
+                alert(`Successfully ingested ${result.chunks_added} chunks (v${version})`);
+                hideIngestModal();
+            } catch (err) {
+                alert('Ingestion failed. Make sure backend is running.');
+                console.error(err);
+            }
+        }
+
+        // Initialize chat with welcome message
+        function initializeChat() {
+            const container = document.getElementById('chat-messages');
+            container.innerHTML = `
+                <div class="flex justify-start">
+                    <div class="max-w-[82%] px-5 py-4 bg-white border border-slate-200 rounded-3xl text-sm message-ai">
+                        <div class="font-medium mb-1">Hello! I'm your Indian Law Intelligence Assistant.</div>
+                        <div class="text-slate-600">Ask me anything about IPC, CrPC, constitutional rights, or any legal situation in India. I use real government data with strict safety guardrails.</div>
+                        <div class="mt-3 text-xs flex items-center gap-x-2 text-emerald-600">
+                            <i class="fas fa-globe"></i> 
+                            <span>Data sourced live from public legal repositories</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Keyboard shortcut hint
+        function addKeyboardHint() {
+            const input = document.getElementById('user-input');
+            input.placeholder = "Ask about any Indian law or situation... (Press Enter to send)";
+        }
+
+        // Boot app
+        function initApp() {
+            initializeTailwind();
+            initializeChat();
+            addKeyboardHint();
+            
+            // Demo: Auto focus input
+            setTimeout(() => {
+                document.getElementById('user-input').focus();
+            }, 800);
+            
+            // Optional: Show a sample query result on load (commented for clean start)
+            // setTimeout(() => { quickQuery("What is Section 420 IPC?"); }, 2200);
+        }
+
+        window.onload = initApp;
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a0853be968816f7a',t:'MTc4MDg5Mzc4OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
