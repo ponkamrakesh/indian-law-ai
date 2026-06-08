@@ -48,12 +48,22 @@ class IngestResponse(BaseModel):
     version: str
     collection: str
 
+
 @app.on_event("startup")
 async def startup_event():
-    # Initialize MLflow (free local or Dagshub)
-    mlflow.set_tracking_uri(settings.mlflow_tracking_uri)
-    mlflow.set_experiment("IndianLawAI_RAG_Evaluation")
-    print("IndianLawAI started. Vectorstore ready. Groq + free embeddings active.")
+    try:
+        mlflow.set_tracking_uri(settings.mlflow_tracking_uri)
+        
+        # Only connect to MLflow server if it's not localhost
+        if "localhost" not in str(settings.mlflow_tracking_uri):
+            mlflow.set_experiment("IndianLawAI_RAG_Evaluation")
+        else:
+            print("MLflow: Using local file storage (no server connection)")
+            
+    except Exception as e:
+        print(f"MLflow startup skipped (not critical for production): {str(e)}")
+    
+    print("IndianLawAI started successfully")
 
 @app.get("/")
 async def root():
