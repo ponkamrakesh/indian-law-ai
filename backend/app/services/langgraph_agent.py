@@ -7,8 +7,11 @@ from app.config import settings
 from app.utils.lang_detect import detect_language
 from app.utils.safety import is_harmful_query, llm_safety_check
 from app.services.vector_store import get_vectorstore, search_similar
-from app.services.cache import query_cache
+from app.services.cache import SimpleTTLCache
 import json
+
+
+query_cache = SimpleTTLCache(ttl=3600)
 
 # State definition for LangGraph
 class AgentState(TypedDict):
