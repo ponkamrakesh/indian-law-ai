@@ -286,6 +286,7 @@
 
     <script>
         // Tailwind script
+        const BACKEND_URL = "https://indianlawai-backend.onrender.com";
         function initializeTailwind() {
             document.documentElement.style.setProperty('--accent', '#8FDDDF');
         }
@@ -360,7 +361,7 @@
 
             try {
                 // Call FastAPI backend (update URL when deployed)
-                const response = await fetch('http://localhost:8000/chat', {
+                const response = await fetch(`${BACKEND_URL}/chat`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ query: query })
@@ -445,7 +446,7 @@
             }
 
             try {
-                const res = await fetch('http://localhost:8000/ingest', {
+                const res = await fetch('${BACKEND_URL}/ingest', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ documents, version, collection: "indian_law" })
