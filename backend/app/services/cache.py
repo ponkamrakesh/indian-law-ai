@@ -3,7 +3,6 @@ import hashlib
 from typing import Dict, Any, Optional
 
 class SimpleTTLCache:
-    """Simple in-memory TTL cache for production use."""
     def __init__(self, ttl: int = 3600):
         self.ttl = ttl
         self.cache: Dict[str, Dict[str, Any]] = {}

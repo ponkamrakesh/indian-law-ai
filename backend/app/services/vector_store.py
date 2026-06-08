@@ -1,22 +1,17 @@
-import chromadb
-from langchain_community.vectorstores import Chroma
-
-from app.config import settings
-from typing import List, Dict, Any, Optional
-import os
-
 from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_community.vectorstores import Chroma
+from app.config import settings
+import os
+from typing import List, Dict, Any, Optional
 
 def get_embedding_model():
-    """Free local embedding model - completely free, no API calls."""
     return HuggingFaceEmbeddings(
-        model_name="BAAI/bge-small-en-v1.5",
+        model_name=settings.embedding_model,
         model_kwargs={'device': 'cpu'},
         encode_kwargs={'normalize_embeddings': True}
     )
 
 def get_vectorstore(collection_name: str = "indian_law"):
-    """Initialize or load Chroma vectorstore. Modular - easy to swap to Pinecone/Supabase/pgvector."""
     persist_dir = settings.chroma_persist_dir
     os.makedirs(persist_dir, exist_ok=True)
     
@@ -30,8 +25,7 @@ def get_vectorstore(collection_name: str = "indian_law"):
     )
     return vectorstore
 
-def add_documents(vectorstore: Chroma, documents: List[Dict[str, Any]], version: str = "1.0"):
-    """Add documents with versioning metadata. Supports future DB additions."""
+def add_documents(vectorstore, documents: List[Dict[str, Any]], version: str = "1.0"):
     texts = [doc["text"] for doc in documents]
     metadatas = []
     for doc in documents:
@@ -47,8 +41,7 @@ def add_documents(vectorstore: Chroma, documents: List[Dict[str, Any]], version:
     vectorstore.persist()
     return len(documents)
 
-def search_similar(vectorstore: Chroma, query: str, k: int = None, filter_metadata: Optional[Dict] = None):
-    """Retrieve with optional metadata filter (e.g., by act or version)."""
+def search_similar(vectorstore, query: str, k: int = None, filter_metadata: Optional[Dict] = None):
     if k is None:
         k = settings.top_k
     return vectorstore.similarity_search(query, k=k, filter=filter_metadata)
