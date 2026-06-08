@@ -78,11 +78,10 @@ async def root():
 async def chat_endpoint(request: QueryRequest):
     try:
         result = process_legal_query(request.query)
-        
-        # Optional metadata filter (future: enhance with filter_act)
+
         if request.filter_act:
             result["metadata"]["filter_applied"] = request.filter_act
-        
+
         return QueryResponse(
             response=result["response"],
             language=result["language"],
@@ -92,7 +91,13 @@ async def chat_endpoint(request: QueryRequest):
             timestamp=datetime.now().isoformat()
         )
     except Exception as e:
+        import traceback
+        print("\n========== CHAT ENDPOINT ERROR ==========")
+        traceback.print_exc()           # This will show the full error
+        print("=========================================\n")
         raise HTTPException(status_code=500, detail=f"Error processing query: {str(e)}")
+    
+
 
 @app.post("/ingest", response_model=IngestResponse)
 async def ingest_endpoint(request: IngestRequest):
