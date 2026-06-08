@@ -124,11 +124,23 @@ def create_agent_graph():
     
     workflow.set_entry_point("detect_lang")
     workflow.add_edge("detect_lang", "safety")
+    
+    # Fixed conditional routing
+    def route_after_safety(state: AgentState):
+        if state["is_safe"]:
+            return "retrieve"
+        else:
+            return "end"
+    
     workflow.add_conditional_edges(
         "safety",
-        lambda state: "retrieve" if state["is_safe"] else END,
-        {True: "retrieve", False: END}
+        route_after_safety,
+        {
+            "retrieve": "retrieve",
+            "end": END
+        }
     )
+    
     workflow.add_edge("retrieve", "generate")
     workflow.add_edge("generate", END)
     
