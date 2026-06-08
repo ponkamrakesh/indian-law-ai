@@ -8,7 +8,7 @@ load_dotenv()
 class Settings(BaseModel):
     groq_api_key: str = os.getenv("GROQ_API_KEY", "")
     chroma_persist_dir: str = os.getenv("CHROMA_PERSIST_DIRECTORY", "./chroma_db")
-    mlflow_tracking_uri: str = os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000")
+    mlflow_tracking_uri: str = os.getenv("MLFLOW_TRACKING_URI", "file:./mlruns")
     embedding_model: str = "BAAI/bge-small-en-v1.5"  # Free local, high quality
     llm_model: str = "llama-3.3-70b-versatile"  # Groq free fast model, or mixtral-8x7b-32768
     chunk_size: int = 800
