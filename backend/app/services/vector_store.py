@@ -1,15 +1,17 @@
 import chromadb
 from langchain_community.vectorstores import Chroma
-from langchain_community.embeddings import HuggingFaceEmbeddings
+
 from app.config import settings
 from typing import List, Dict, Any, Optional
 import os
 
+from langchain_huggingface import HuggingFaceEmbeddings
+
 def get_embedding_model():
     """Free local embedding model - completely free, no API calls."""
     return HuggingFaceEmbeddings(
-        model_name=settings.embedding_model,
-        model_kwargs={'device': 'cpu'},  # Change to 'cuda' if GPU available
+        model_name="BAAI/bge-small-en-v1.5",
+        model_kwargs={'device': 'cpu'},
         encode_kwargs={'normalize_embeddings': True}
     )
 
