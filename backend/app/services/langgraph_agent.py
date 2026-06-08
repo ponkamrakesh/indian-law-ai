@@ -8,12 +8,11 @@ from app.utils.lang_detect import detect_language
 from app.utils.safety import is_harmful_query, llm_safety_check
 from app.services.vector_store import get_vectorstore, search_similar
 from app.services.cache import SimpleTTLCache
-import json
 
-
+# Create cache instance
 query_cache = SimpleTTLCache(ttl=3600)
 
-# State definition for LangGraph
+
 class AgentState(TypedDict):
     query: str
     language: Dict[str, str]
@@ -23,6 +22,7 @@ class AgentState(TypedDict):
     response: str
     metadata: Dict[str, Any]
 
+
 def get_llm():
     return ChatGroq(
         groq_api_key=settings.groq_api_key,
@@ -31,13 +31,13 @@ def get_llm():
         max_tokens=1024
     )
 
-# Node 1: Language Detection
+
 def detect_lang_node(state: AgentState) -> AgentState:
     lang_info = detect_language(state["query"])
     state["language"] = lang_info
     return state
 
-# Node 2: Safety Guardrail
+
 def safety_node(state: AgentState) -> AgentState:
     query = state["query"]
     if is_harmful_query(query):
@@ -50,11 +50,10 @@ def safety_node(state: AgentState) -> AgentState:
     state["safety_reason"] = reason
     return state
 
-# Node 3: Retrieval (with cache check)
+
 def retrieve_node(state: AgentState) -> AgentState:
     query = state["query"]
     
-    # Check cache first
     cached = query_cache.get(query)
     if cached:
         state["retrieved_docs"] = cached.get("docs", [])
@@ -67,18 +66,16 @@ def retrieve_node(state: AgentState) -> AgentState:
     retrieved = []
     for doc in docs:
         retrieved.append({
-            "content": doc.page_content,
+            "content": doc.page_content,           # Fixed
             "metadata": doc.metadata
         })
     
     state["retrieved_docs"] = retrieved
     state["metadata"]["cached"] = False
-    
-    # Cache the retrieval
     query_cache.set(query, {"docs": retrieved})
     return state
 
-# Node 4: Generation with RAG
+
 def generate_node(state: AgentState) -> AgentState:
     if not state["is_safe"]:
         state["response"] = f"I'm sorry, but I cannot assist with that query as it appears to involve harmful or illegal activities. {settings.disclaimer}"
@@ -89,7 +86,10 @@ def generate_node(state: AgentState) -> AgentState:
     lang = state["language"]["name"]
     query = state["query"]
     
-    context = "\n\n".join([f"Section from {d['metadata'].get('act', 'Law')}: {d['content']}" for d in docs[:settings.top_k]])
+    context = "\n\n".join([
+        f"Section from {d['metadata'].get('act', 'Law')}: {d['content']}" 
+        for d in docs[:settings.top_k]                    # Fixed
+    ])
     
     prompt = ChatPromptTemplate.from_messages([
         ("system", f"""You are an expert Indian Law Intelligence Assistant (IndianLawAI).
@@ -113,7 +113,7 @@ def generate_node(state: AgentState) -> AgentState:
     state["metadata"]["num_sources"] = len(docs)
     return state
 
-# Build the LangGraph
+
 def create_agent_graph():
     workflow = StateGraph(AgentState)
     
@@ -127,14 +127,14 @@ def create_agent_graph():
     workflow.add_conditional_edges(
         "safety",
         lambda state: "retrieve" if state["is_safe"] else END,
-        {True: "retrieve", False: END}  # If unsafe, end early
+        {True: "retrieve", False: END}
     )
     workflow.add_edge("retrieve", "generate")
     workflow.add_edge("generate", END)
     
     return workflow.compile()
 
-# Main query function
+
 def process_legal_query(query: str) -> Dict[str, Any]:
     agent = create_agent_graph()
     initial_state: AgentState = {
